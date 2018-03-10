@@ -9,7 +9,8 @@ void test(std::string s) {
 }
 
 void
-BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer> &swapChainFrameBuffers, BasicPipeline &pipeline, Scene &scene) {
+BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer> &swapChainFrameBuffers,
+                                                GraphicsPipelineManager &graphicsPipelineManager, Scene &scene) {
 
     commandBuffers.resize(vulkanManager->swapChainImageViews.size());
 
@@ -32,7 +33,7 @@ BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer>
         //std::thread(write, i, const_cast<VkFramebuffer>(swapChainFrameBuffers[i]), pipeline, scene);
         //std::thread(test);
         //threads[i] = std::thread(&BasicCommandBufferManager::write, this, i, swapChainFrameBuffers[i], pipeline, scene); //TODO fix? need multiple command pools, one per image, any real benefit for now?
-        write(i, swapChainFrameBuffers[i], pipeline, scene);
+        write(i, swapChainFrameBuffers[i], graphicsPipelineManager, scene);
 
         //write(i,swapChainFrameBuffers[i], pipeline, scene);
     }
@@ -47,8 +48,8 @@ BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer>
 
 }
 
-void BasicCommandBufferManager::write(int i, VkFramebuffer const swapChainFrameBuffer, BasicPipeline pipeline,
-                                      Scene scene){
+void BasicCommandBufferManager::write(int i, VkFramebuffer const swapChainFrameBuffer,
+                                      GraphicsPipelineManager graphicsPipelineManager, Scene scene) {
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -76,12 +77,34 @@ void BasicCommandBufferManager::write(int i, VkFramebuffer const swapChainFrameB
 
     vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline);
+    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelines[0]);
 
     uint32_t j = 0;
+//    for (Entity entity : scene.entities) {
+//
+//        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelineLayouts[0][j], 0, 1, &graphicsPipelineManager.descriptorSets[0][j], 0, nullptr);
+//
+//        VkBuffer vertexBuffers[] = {entity.texturedModel.model.vertexBuffer};
+//        VkDeviceSize offsets[] = {0};
+//        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+//        vkCmdBindIndexBuffer(commandBuffers[i], entity.texturedModel.model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+//
+//        vkCmdDrawIndexed(commandBuffers[i], entity.texturedModel.model.indexCount, 1, 0, 0, 0);
+//
+//        ++j;
+//
+//    }
+
+    //Subpass #2
+
+    vkCmdNextSubpass(commandBuffers[i], VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelines[1]);
+
+    j = 0;
     for (Entity entity : scene.entities) {
 
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipelineLayouts[j], 0, 1, &pipeline.descriptorSets[j], 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelineLayouts[1][j], 0, 1, &graphicsPipelineManager.descriptorSets[1][j], 0, nullptr);
 
         VkBuffer vertexBuffers[] = {entity.texturedModel.model.vertexBuffer};
         VkDeviceSize offsets[] = {0};

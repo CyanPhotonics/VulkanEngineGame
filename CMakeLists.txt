@@ -5,12 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 
 set(LIB_DIR "C:/Users/Matthew/CLionProjects/Libraries")
-set(VULKAN_DIR "C:/")
+set(VULKAN_DIR "C:/VulkanSDK/1.1.70.0/")
 
 include_directories(
         ${LIB_DIR}/glm
         ${LIB_DIR}/glfw/include
-        ${VULKAN_DIR}/VulkanSDK/1.0.68.0/Include
+        ${VULKAN_DIR}/Include
         ${LIB_DIR}/stb
         ${LIB_DIR}/tinyobjloader
         # ${LIB_DIR}/OBJ_Loader
@@ -18,18 +18,13 @@ include_directories(
 
 link_directories(
         ${LIB_DIR}/glfw/lib-mingw-w64
-        ${VULKAN_DIR}/VulkanSDK/1.0.68.0/Lib
+        ${VULKAN_DIR}/Lib
 )
-
-
-file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/saved/*.cpp)
-file(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/saved/*.h)
 
 add_executable(VulkanEngine
 
         src/testing/EngineTester.cpp src/testing/EngineTester.h
 
-        src/testing/BasicPipeline.cpp src/testing/BasicPipeline.h
         src/testing/Camera.cpp src/testing/Camera.h
 
         src/scene/SceneManager.cpp src/scene/SceneManager.h
@@ -44,11 +39,13 @@ add_executable(VulkanEngine
         src/presentation/WindowManager.cpp src/presentation/WindowManager.h
 
         src/rendering/RenderPassManager.cpp src/rendering/RenderPassManager.h
-        src/rendering/GraphicsPipelineBase.cpp src/rendering/GraphicsPipelineBase.h
+        src/rendering/GraphicsPipelineManager.cpp src/rendering/GraphicsPipelineManager.h
         src/rendering/FrameBufferManager.cpp src/rendering/FrameBufferManager.h
         src/rendering/ImageManager.cpp src/rendering/ImageManager.h
         src/rendering/CommandPoolManager.cpp src/rendering/CommandPoolManager.h
         src/rendering/BasicCommandBufferManager.cpp src/rendering/BasicCommandBufferManager.h
+
+        src/graphicsPipeline/BasicPipelines.cpp src/graphicsPipeline/BasicPipelines.h
 
         src/resources/Texture.h
         src/resources/Model.h

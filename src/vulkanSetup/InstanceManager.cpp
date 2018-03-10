@@ -8,6 +8,7 @@ void InstanceManager::createInstance(const char* applicationName, const std::vec
     applicationInfo.applicationVersion = VK_MAKE_VERSION(1,0,0);
     applicationInfo.pEngineName = "NO ENGINE";
     applicationInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
+    applicationInfo.apiVersion = VK_API_VERSION_1_1;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -17,7 +18,9 @@ void InstanceManager::createInstance(const char* applicationName, const std::vec
     createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerNames.size());
     createInfo.ppEnabledLayerNames = validationLayerNames.data();
 
-    if (vkCreateInstance(&createInfo, nullptr, &vulkanManager->instance) != VK_SUCCESS){
+    VkResult result = vkCreateInstance(&createInfo, nullptr, &vulkanManager->instance);
+
+    if (result != VK_SUCCESS){
         throw std::runtime_error("Failed to create vulkan instance!\n");
     }
 

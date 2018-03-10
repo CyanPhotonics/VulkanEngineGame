@@ -31,7 +31,7 @@ private:
 
 	void sync();
 
-    double fpsLimit = 60;
+    double fpsLimit = 120;
 
 public:
 	explicit WindowManager (VulkanManager *vulkanManger){ this->vulkanManager = vulkanManger; }

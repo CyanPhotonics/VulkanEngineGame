@@ -7,17 +7,19 @@
 
 #include "../vulkanSetup/VulkanManager.h"
 
-#include "../testing/BasicPipeline.h"
 #include "../scene/SceneManager.h"
+#include "GraphicsPipelineManager.h"
 
 class BasicCommandBufferManager {
 private:
     VulkanManager* vulkanManager;
-    void write(int i, VkFramebuffer const swapChainFrameBuffer, BasicPipeline pipeline, Scene scene);
+    void write(int i, VkFramebuffer const swapChainFrameBuffer,
+                   GraphicsPipelineManager graphicsPipelineManager, Scene scene);
 
 public:
     explicit BasicCommandBufferManager(VulkanManager* vulkanManager) { this->vulkanManager = vulkanManager; }
-    void createCommandBuffers(const std::vector<VkFramebuffer> &swapChainFrameBuffers, BasicPipeline &pipeline, Scene &scene);
+    void createCommandBuffers(const std::vector<VkFramebuffer> &swapChainFrameBuffers,
+                              GraphicsPipelineManager &graphicsPipelineManager, Scene &scene);
     std::vector<VkCommandBuffer> commandBuffers = {};
     void cleanUp();
 

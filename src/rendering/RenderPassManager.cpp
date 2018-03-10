@@ -44,26 +44,48 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     multiAttachmentRef.attachment = 2;
     multiAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkSubpassDescription subpass = {};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
+    std::array<VkSubpassDescription, 2> subpassArray{};
+
+    subpassArray[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassArray[0].colorAttachmentCount = 1;
     if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
-        subpass.pColorAttachments = &multiAttachmentRef;
+        subpassArray[0].pColorAttachments = &multiAttachmentRef;
     } else {
-        subpass.pColorAttachments = &swapChainAttachmentRef;
+        subpassArray[0].pColorAttachments = &swapChainAttachmentRef;
     }
-    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    subpassArray[0].pDepthStencilAttachment = &depthAttachmentRef;
     if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
-        subpass.pResolveAttachments = &swapChainAttachmentRef;
+        subpassArray[0].pResolveAttachments = &swapChainAttachmentRef;
     }
 
-    VkSubpassDependency dependency = {};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpassArray[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassArray[1].colorAttachmentCount = 1;
+    if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
+        subpassArray[1].pColorAttachments = &multiAttachmentRef;
+    } else {
+        subpassArray[1].pColorAttachments = &swapChainAttachmentRef;
+    }
+    subpassArray[1].pDepthStencilAttachment = &depthAttachmentRef;
+    if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
+        subpassArray[1].pResolveAttachments = &swapChainAttachmentRef;
+    }
+
+    std::array<VkSubpassDependency, 2> dependencyArray{};
+
+    dependencyArray[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencyArray[0].dstSubpass = 0;
+    dependencyArray[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencyArray[0].srcAccessMask = 0;
+    dependencyArray[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencyArray[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    //TODO check dependency is done right
+    dependencyArray[1].srcSubpass = 0;
+    dependencyArray[1].dstSubpass = 1;
+    dependencyArray[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencyArray[1].srcAccessMask = 0;
+    dependencyArray[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencyArray[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     std::array<VkAttachmentDescription, 3> attachmentsDescs = { swapChainAttachmentDesc, depthAttachmentDesc, multiAttachmentDesc };
 
@@ -71,10 +93,10 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = static_cast<uint32_t> (attachmentsDescs.size ());
     renderPassInfo.pAttachments = attachmentsDescs.data ();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
+    renderPassInfo.subpassCount = subpassArray.size();
+    renderPassInfo.pSubpasses = subpassArray.data();
+    renderPassInfo.dependencyCount = dependencyArray.size();
+    renderPassInfo.pDependencies = dependencyArray.data();
 
     if (vkCreateRenderPass (vulkanManager->device, &renderPassInfo, nullptr, &vulkanManager->renderPass) != VK_SUCCESS) {
         throw std::runtime_error ("Failed to create render pass!\n");

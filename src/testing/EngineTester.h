@@ -14,10 +14,12 @@
 
 #include "../rendering/CommandPoolManager.h"
 #include "../rendering/ImageManager.h"
-#include "../rendering/GraphicsPipelineBase.h"
+#include "../rendering/GraphicsPipelineManager.h"
 #include "../rendering/FrameBufferManager.h"
 #include "../rendering/RenderPassManager.h"
 #include "../rendering/BasicCommandBufferManager.h"
+
+#include "../graphicsPipeline/BasicPipelines.h"
 
 #include "../resources/ModelManager.h"
 
@@ -27,15 +29,15 @@
 #include "../utility/MemoryUtility.h"
 #include "../utility/DebugUtility.h"
 
-#include "BasicPipeline.h"
 #include "Camera.h"
 
 class EngineTester {
 private:
     std::vector<const char*> extensions = {};
     #ifndef NDEBUG
-        std::vector<const char*> validationLayers = {"VK_LAYER_LUNARG_standard_validation",
-                                                             "VK_LAYER_LUNARG_assistant_layer"
+        std::vector<const char*> validationLayers = {
+                "VK_LAYER_LUNARG_standard_validation",
+                //"VK_LAYER_LUNARG_assistant_layer" //TODO fix?
         };
     #else
         std::vector<const char*> validationLayers = {};
@@ -56,7 +58,8 @@ private:
     FrameBufferManager frameBufferManager = FrameBufferManager(&vulkanManager);
     BasicCommandBufferManager basicCommandBufferManager = BasicCommandBufferManager(&vulkanManager);
 
-    BasicPipeline basicPipeline = BasicPipeline(&vulkanManager, &memoryUtility);
+    GraphicsPipelineManager graphicsPipelineManager = GraphicsPipelineManager(&vulkanManager, &memoryUtility);
+    BasicPipelines basicPipelines = BasicPipelines();
 
     ModelManager modelManager = ModelManager(&vulkanManager, &memoryUtility);
 
@@ -75,7 +78,7 @@ private:
     void createScene();
     void postSwapChain();
     void preloop();
-    void updateUniforms(int start, int count);
+    void updateUniforms(int start, int count, int pipelineIndex);
     void loopLogic();
     void loopRender();
     void postLoop();

@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include <Vulkan/vulkan.h>
+#include <vulkan/vulkan.h>
 
 #include "VulkanManager.h"
 

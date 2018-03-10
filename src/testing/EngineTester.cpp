@@ -26,16 +26,22 @@ void EngineTester::createVulkanEnvironment() {
 void EngineTester::createScene() {
 
     sceneManager.addEntity(scene,
-                           glm::vec3(0), glm::vec3(M_PI_2,0,0), glm::vec3(10),
+                           glm::vec3(0), glm::vec3(M_PI_2,0,0), glm::vec3(100),
                            "plane.obj", "white.png"
+    );
+
+    sceneManager.addEntity(scene,
+                           glm::vec3(5,5,1.5), glm::vec3(0), glm::vec3(3),
+                           "cube.obj", "blue.png"
     );
 
     sceneManager.addPointLight(scene,
                                glm::vec3(0.01,0,1), glm::vec3(1),
-                               glm::vec3(0,0,5)
+                               glm::vec3(0,0,5), glm::vec3(0), glm::vec3(0.25f),
+                               "sphere.obj", "white.png"
     );
 
-    basicPipeline.firstTimeOnlySetup(&scene);
+    graphicsPipelineManager.firstTimeOnlySetup(basicPipelines.pipelines, &scene);
 
 }
 
@@ -55,9 +61,9 @@ void EngineTester::createSwapChain() {
 
     frameBufferManager.createFrameBuffersWithSwapChain(std::vector<VkImageView>{imageManager.MSAATexture.imageView});
 
-    basicPipeline.setup();
+    graphicsPipelineManager.setup();
 
-    basicCommandBufferManager.createCommandBuffers(frameBufferManager.getFrameBuffers(), basicPipeline, scene);
+    basicCommandBufferManager.createCommandBuffers(frameBufferManager.getFrameBuffers(), graphicsPipelineManager, scene);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -119,37 +125,42 @@ void EngineTester::loopLogic() {
 
     //Camera
 
-    //                                                                   uniform,  array index
-    vkMapMemory (vulkanManager.device, basicPipeline.staticUniformVariables[0].memorys[0], 0, sizeof (projectionViewMatrix), 0, &data);
+    //                                                                     pipelinem,unifrom,array index
+    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].memorys[0], 0, sizeof (projectionViewMatrix), 0, &data);
     memcpy (data, &projectionViewMatrix, sizeof (projectionViewMatrix));
-    vkUnmapMemory (vulkanManager.device, basicPipeline.staticUniformVariables[0].memorys[0]);
+    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].memorys[0]);
+
+    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].memorys[0], 0, sizeof (projectionViewMatrix), 0, &data);
+    memcpy (data, &projectionViewMatrix, sizeof (projectionViewMatrix));
+    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].memorys[0]);
 
     //Lights
 
     //Point lights
 
-    if (frame == 10) {
+    if (frame == 9) {
+
 
         uint32_t pointLightCount = (uint32_t) std::min(MAX_POINT_LIGHTS, scene.pointLights.size());
 
-        basicPipeline.pointLightUO.count = pointLightCount;
+        basicPipelines.pointLightUO.count = pointLightCount;
 
         for (int i = 0; i < pointLightCount; ++i) {
 
             if (scene.pointLights[i].entity != -1) {
-                basicPipeline.pointLightUO.positions[i] = glm::vec4(scene.entities[scene.pointLights[i].entity].position, 0);
+                basicPipelines.pointLightUO.positions[i] = glm::vec4(scene.entities[scene.pointLights[i].entity].position, 0);
             } else {
-                basicPipeline.pointLightUO.positions[i] = glm::vec4(scene.pointLights[i].position, 0);
+                basicPipelines.pointLightUO.positions[i] = glm::vec4(scene.pointLights[i].position, 0);
             }
-            basicPipeline.pointLightUO.attenuations[i] = glm::vec4(scene.pointLights[i].attenuation, 0);
-            basicPipeline.pointLightUO.colours[i] = glm::vec4(scene.pointLights[i].colour, 0);
+            basicPipelines.pointLightUO.attenuations[i] = glm::vec4(scene.pointLights[i].attenuation, 0);
+            basicPipelines.pointLightUO.colours[i] = glm::vec4(scene.pointLights[i].colour, 0);
 
         }
 
-        vkMapMemory(vulkanManager.device, basicPipeline.staticUniformVariables[1].memorys[0], 0,
-                    sizeof(BasicPipeline::PointLightUniformObject), 0, &data);
-        memcpy(data, &basicPipeline.pointLightUO, sizeof(BasicPipeline::PointLightUniformObject));
-        vkUnmapMemory(vulkanManager.device, basicPipeline.staticUniformVariables[1].memorys[0]);
+        vkMapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].memorys[0], 0,
+                    sizeof(BasicPipelines::PointLightUniformObject), 0, &data);
+        memcpy(data, &basicPipelines.pointLightUO, sizeof(BasicPipelines::PointLightUniformObject));
+        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].memorys[0]);
 
     }
 
@@ -166,11 +177,36 @@ void EngineTester::loopLogic() {
 
         for (int i = 0; i < threadCount; ++i) {
             if (i != threadCount-1) {
-                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, minStep);
+                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, minStep, 0);
                 used += minStep;
                 left -= minStep;
             } else {
-                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, left);
+                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, left, 0);
+            }
+        }
+
+        for (int i = 0; i < threadCount; ++i) {
+            threads[i].join();
+        }
+
+    }
+
+    if (frame == 11) {
+
+        int threadCount = 8;
+        std::thread threads[threadCount];
+
+        int used = 0;
+        int left = static_cast<int>(scene.entities.size());
+        int minStep = static_cast<int>(std::floor(left / threadCount));
+
+        for (int i = 0; i < threadCount; ++i) {
+            if (i != threadCount-1) {
+                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, minStep, 1);
+                used += minStep;
+                left -= minStep;
+            } else {
+                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, left, 1);
             }
         }
 
@@ -182,7 +218,7 @@ void EngineTester::loopLogic() {
 
 }
 
-void EngineTester::updateUniforms(int start, int count) {
+void EngineTester::updateUniforms(int start, int count, int pipelineIndex) {
 
     void* data;
 
@@ -197,11 +233,11 @@ void EngineTester::updateUniforms(int start, int count) {
                       * glm::rotate(entity.rotation.z, glm::vec3(0, 0, 1))
                       * glm::scale(entity.scale);
 
-        //                                                              uniform, model, array index
-        vkMapMemory(vulkanManager.device, basicPipeline.uniformVariables[0].memorys[i][0], 0, sizeof(modelMatrix), 0,
+        //                                                              pipeline, uniform, model, array index
+        vkMapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].memorys[i][0], 0, sizeof(modelMatrix), 0,
                     &data);
         memcpy(data, &modelMatrix, sizeof(modelMatrix));
-        vkUnmapMemory(vulkanManager.device, basicPipeline.uniformVariables[0].memorys[i][0]);
+        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].memorys[i][0]);
 
     }
 
@@ -280,7 +316,7 @@ void EngineTester::cleanUpSwapChain() {
     vkDeviceWaitIdle(vulkanManager.device);
 
     basicCommandBufferManager.cleanUp();
-    basicPipeline.cleanUp();
+    graphicsPipelineManager.cleanUp();
     imageManager.cleanUpDepthImage();
     imageManager.cleanUpMSAAImage();
     frameBufferManager.cleanUp();
@@ -304,7 +340,7 @@ void EngineTester::cleanup() {
 
     imageManager.cleanUpTextures();
 
-    basicPipeline.cleanUpFinal();
+    graphicsPipelineManager.cleanUpFinal();
 
     commandPoolManager.cleanUp();
 

@@ -61,7 +61,9 @@ void DeviceManager::createLogicalDevice (std::vector<const char*> validationLaye
 		createInfo.ppEnabledLayerNames = validationLayers.data ();
 	}
 
-	if (vkCreateDevice (vulkanManager->physicalDevice, &createInfo, nullptr, &vulkanManager->device) != VK_SUCCESS) {
+	VkResult result = vkCreateDevice (vulkanManager->physicalDevice, &createInfo, nullptr, &vulkanManager->device);
+
+	if (result != VK_SUCCESS) {
 		throw std::runtime_error ("Failed to create logical device");
 	}
 
