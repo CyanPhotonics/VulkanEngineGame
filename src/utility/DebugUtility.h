@@ -12,7 +12,7 @@ public:
         std::cout << "----" << name << "----" << std::endl;
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
-                std::cout << mat4[i][j] << (i != 3 ? " " : "");
+                std::cout << mat4[i][j] << (j != 3 ? " " : "");
             }
             std::cout << std::endl;
         }
