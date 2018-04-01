@@ -1,6 +1,40 @@
 #include "MemoryUtility.h"
 
-void MemoryUtility::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& deviceMemory){
+void MemoryUtility::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                                 VkDeviceMemory &deviceMemory, VkDescriptorBufferInfo &descriptorBufferInfo) {
+
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(vulkanManager->device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS){
+        throw std::runtime_error("Failed to create buffer");
+    }
+
+    VkMemoryRequirements memoryRequirements{};
+    vkGetBufferMemoryRequirements(vulkanManager->device, buffer, &memoryRequirements);
+
+    VkMemoryAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.allocationSize = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(vulkanManager->device, &allocateInfo, nullptr, &deviceMemory) != VK_SUCCESS){
+        throw std::runtime_error("Failed to allocate memory!\n");
+    }
+
+    vkBindBufferMemory(vulkanManager->device, buffer, deviceMemory, 0);
+
+    descriptorBufferInfo.buffer = buffer;
+    descriptorBufferInfo.range = size;
+    descriptorBufferInfo.offset = 0;
+
+}
+
+void MemoryUtility::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                                 VkDeviceMemory &deviceMemory) {
 
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
