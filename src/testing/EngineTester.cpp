@@ -41,13 +41,13 @@ void EngineTester::createScene() {
                                "sphere.obj", "white.png"
     );
 
-    graphicsPipelineManager.firstTimeOnlySetup(basicPipelines.pipelines, &scene);
+    graphicsPipelineManager.initialSetup(basicPipelines.pipelines, &scene);
 
 }
 
 void EngineTester::createSwapChain() {
 
-    swapChainManager.createSwapChainImagesAndViews();
+    swapChainManager.createSwapChainImagesAndViews(windowManager);
 
     if (vulkanManager.swapChainExtent.width == 0 || vulkanManager.swapChainExtent.height == 0) {
         cleanUpSwapChain();
@@ -55,15 +55,23 @@ void EngineTester::createSwapChain() {
     };
 
     imageManager.createDepthResources();
-    imageManager.createMSAAResources();
+    imageManager.createMSAAResource();
+    imageManager.createStorageImageResource(scene.storageTextures, 1.0f);
 
     renderPassManager.createRenderPassesForSwapChain();
 
-    frameBufferManager.createFrameBuffersWithSwapChain(std::vector<VkImageView>{imageManager.MSAATexture.imageView});
+    frameBufferManager.createFrameBuffersWithSwapChain(std::vector<VkImageView>{imageManager.MSAATexture.imageView, scene.storageTextures[0].imageView});
 
-    graphicsPipelineManager.setup();
+    graphicsPipelineManager.textureSamplers[1][0].accessImageView(0) = scene.storageTextures[0].imageView;
+    graphicsPipelineManager.textureSamplers[1][0].accessSampler(0) = scene.storageTextures[0].sampler;
+    graphicsPipelineManager.textureSamplers[1][0].accessImageInfo(0).imageView = scene.storageTextures[0].imageView;
+    graphicsPipelineManager.textureSamplers[1][0].accessImageInfo(0).sampler = scene.storageTextures[0].sampler;
+    graphicsPipelineManager.textureSamplers[1][0].accessImageInfo(0).imageLayout = VK_IMAGE_LAYOUT_UNDEFINED; //TODO fix?       //VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 
-    basicCommandBufferManager.createCommandBuffers(frameBufferManager.getFrameBuffers(), graphicsPipelineManager, scene);
+    graphicsPipelineManager.perSwapChainSetup();
+
+    basicCommandBufferManager.createCommandBuffers(frameBufferManager.getFrameBuffers(), graphicsPipelineManager, scene,
+                                                   windowManager);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -105,11 +113,6 @@ void EngineTester::loopLogic() {
 
     //Update uniform buffer
 
-//    static auto startTime = std::chrono::high_resolution_clock::now ();
-//
-//    auto currentTime = std::chrono::high_resolution_clock::now ();
-//    float time = std::chrono::duration<float, std::chrono::seconds::period> (currentTime - startTime).count ();
-
 
     glm::mat4 projectionMatrix = glm::perspective (glm::radians (camera.FOV), vulkanManager.swapChainExtent.width / (float)vulkanManager.swapChainExtent.height, camera.zNear, camera.zFar);
     projectionMatrix[1][1] *= -1;
@@ -126,13 +129,32 @@ void EngineTester::loopLogic() {
     //Camera
 
     //                                                                     pipelinem,unifrom,array index
-    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].memorys[0], 0, sizeof (projectionViewMatrix), 0, &data);
+    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].accessMemory(), 0, sizeof (projectionViewMatrix), 0, &data);
     memcpy (data, &projectionViewMatrix, sizeof (projectionViewMatrix));
-    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].memorys[0]);
+    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][0].accessMemory());
 
-    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].memorys[0], 0, sizeof (projectionViewMatrix), 0, &data);
-    memcpy (data, &projectionViewMatrix, sizeof (projectionViewMatrix));
-    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].memorys[0]);
+    static float blurWidthHold = 1;
+    static int blurWidth = 1;
+
+    if (windowManager.isKeyDown(GLFW_KEY_UP)){
+        blurWidthHold += 3 * windowManager.getLastFrameTime();
+        Maths::clamp(blurWidthHold, 1.0f, 15.0f);
+        blurWidth = ((int) blurWidthHold) - (((int) blurWidthHold + 1) % 2);
+    }
+    if (windowManager.isKeyDown(GLFW_KEY_DOWN)){
+        blurWidthHold -= 3 * windowManager.getLastFrameTime();
+        Maths::clamp(blurWidthHold, 1.0f, 15.0f);
+        blurWidth = ((int) blurWidthHold) - (((int) blurWidthHold + 1) % 2);
+    }
+
+    printf("Hold: %f Actual: %d\n", blurWidthHold, blurWidth);
+
+    glm::ivec4 blurData = {windowManager.getWindowWidth(), windowManager.getWindowHeight(), blurWidth, 0};
+
+    //                                                                     pipelinem,unifrom,array index
+    vkMapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].accessMemory(), 0, sizeof (blurData), 0, &data);
+    memcpy (data, &blurData, sizeof (blurData));
+    vkUnmapMemory (vulkanManager.device, graphicsPipelineManager.staticUniformVariables[1][0].accessMemory());
 
     //Lights
 
@@ -157,10 +179,10 @@ void EngineTester::loopLogic() {
 
         }
 
-        vkMapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].memorys[0], 0,
+        vkMapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].accessMemory(), 0,
                     sizeof(BasicPipelines::PointLightUniformObject), 0, &data);
         memcpy(data, &basicPipelines.pointLightUO, sizeof(BasicPipelines::PointLightUniformObject));
-        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].memorys[0]);
+        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.staticUniformVariables[0][1].accessMemory());
 
     }
 
@@ -171,11 +193,11 @@ void EngineTester::loopLogic() {
         int threadCount = 8;
         std::thread threads[threadCount];
 
-        int used = 0;
-        int left = static_cast<int>(scene.entities.size());
-        int minStep = static_cast<int>(std::floor(left / threadCount));
+        uint32_t used = 0;
+        auto left = static_cast<uint32_t >(scene.entities.size());
+        auto minStep = static_cast<uint32_t >(std::floor(left / threadCount));
 
-        for (int i = 0; i < threadCount; ++i) {
+        for (uint32_t i = 0; i < threadCount; ++i) {
             if (i != threadCount-1) {
                 threads[i] = std::thread(&EngineTester::updateUniforms, this, used, minStep, 0);
                 used += minStep;
@@ -191,39 +213,14 @@ void EngineTester::loopLogic() {
 
     }
 
-    if (frame == 11) {
-
-        int threadCount = 8;
-        std::thread threads[threadCount];
-
-        int used = 0;
-        int left = static_cast<int>(scene.entities.size());
-        int minStep = static_cast<int>(std::floor(left / threadCount));
-
-        for (int i = 0; i < threadCount; ++i) {
-            if (i != threadCount-1) {
-                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, minStep, 1);
-                used += minStep;
-                left -= minStep;
-            } else {
-                threads[i] = std::thread(&EngineTester::updateUniforms, this, used, left, 1);
-            }
-        }
-
-        for (int i = 0; i < threadCount; ++i) {
-            threads[i].join();
-        }
-
-    }
-
 }
 
-void EngineTester::updateUniforms(int start, int count, int pipelineIndex) {
+void EngineTester::updateUniforms(uint32_t start, uint32_t count, uint32_t pipelineIndex) {
 
     void* data;
 
     glm::mat4 modelMatrix{};
-    for (int i = start; i < start + count; ++i) {
+    for (uint32_t i = start; i < start + count; ++i) {
 
         Entity &entity = scene.entities[i];
 
@@ -233,11 +230,14 @@ void EngineTester::updateUniforms(int start, int count, int pipelineIndex) {
                       * glm::rotate(entity.rotation.z, glm::vec3(0, 0, 1))
                       * glm::scale(entity.scale);
 
-        //                                                              pipeline, uniform, model, array index
-        vkMapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].memorys[i][0], 0, sizeof(modelMatrix), 0,
+        DebugUtility::print("Model Matrix", modelMatrix);
+
+        //                                                                          pipeline, uniform
+        vkMapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].accessMemory(i), 0, sizeof(modelMatrix), 0,
                     &data);
         memcpy(data, &modelMatrix, sizeof(modelMatrix));
-        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].memorys[i][0]);
+        vkUnmapMemory(vulkanManager.device, graphicsPipelineManager.uniformVariables[pipelineIndex][0].accessMemory(i));                            //TODO setting data seems wrong, it does something, but a wrong something
+
 
     }
 
@@ -279,9 +279,7 @@ void EngineTester::loopRender() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit (vulkanManager.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-        throw std::runtime_error ("Failed to submit draw command buffer!\n");
-    }
+    DebugUtility::VkSuccess(vkQueueSubmit(vulkanManager.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE), "Failed to submit draw command buffer!");
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -316,9 +314,9 @@ void EngineTester::cleanUpSwapChain() {
     vkDeviceWaitIdle(vulkanManager.device);
 
     basicCommandBufferManager.cleanUp();
-    graphicsPipelineManager.cleanUp();
+    graphicsPipelineManager.swapChainCleanUp();
     imageManager.cleanUpDepthImage();
-    imageManager.cleanUpMSAAImage();
+    imageManager.cleanUpExtraImages(scene.storageTextures);
     frameBufferManager.cleanUp();
     renderPassManager.cleanUp();
     swapChainManager.cleanUp();
@@ -340,7 +338,7 @@ void EngineTester::cleanup() {
 
     imageManager.cleanUpTextures();
 
-    graphicsPipelineManager.cleanUpFinal();
+    graphicsPipelineManager.finalCleanUp();
 
     commandPoolManager.cleanUp();
 

@@ -1,19 +1,20 @@
 #include "SwapChainManager.h"
+#include "WindowManager.h"
 
 SwapChainManager::SwapChainManager (VulkanManager* vulkanManager) {
 	this->vulkanManager = vulkanManager;
 }
 
-void SwapChainManager::createSwapChainImagesAndViews () {
+void SwapChainManager::createSwapChainImagesAndViews(WindowManager manager) {
 
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport ();
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapChainSurfaceFormat (swapChainSupport.formats);
-	VkPresentModeKHR presentMode = chooseSwapChainPresentMode (swapChainSupport.presentModes);
+	VkPresentModeKHR presentMode = chooseSwapChainPresentMode(swapChainSupport.presentModes, manager.fullscreen);
 	printf("Present mode: %d\n", presentMode);
 	VkExtent2D extent = chooseSwapChainExtent (swapChainSupport.capabilities);
 
-	uint32_t imageCount = Maths::clamp (swapChainSupport.capabilities.minImageCount + 1, swapChainSupport.capabilities.minImageCount, swapChainSupport.capabilities.maxImageCount > 0 ? swapChainSupport.capabilities.maxImageCount : std::numeric_limits<uint32_t>::max ());
+	uint32_t imageCount = Maths::clampReturn (swapChainSupport.capabilities.minImageCount + 1, swapChainSupport.capabilities.minImageCount, swapChainSupport.capabilities.maxImageCount > 0 ? swapChainSupport.capabilities.maxImageCount : std::numeric_limits<uint32_t>::max ());
     printf("Image count: %d\n", imageCount);
 
 	VkSwapchainCreateInfoKHR createInfo = {};
@@ -111,7 +112,11 @@ VkSurfaceFormatKHR SwapChainManager::chooseSwapChainSurfaceFormat (std::vector<V
 
 }
 
-VkPresentModeKHR SwapChainManager::chooseSwapChainPresentMode (std::vector<VkPresentModeKHR> presentModes) {
+VkPresentModeKHR SwapChainManager::chooseSwapChainPresentMode(std::vector<VkPresentModeKHR> presentModes, bool fullscreen) {
+
+    if (fullscreen){
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
 
 	VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 

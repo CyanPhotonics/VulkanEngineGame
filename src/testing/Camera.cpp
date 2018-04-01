@@ -2,6 +2,14 @@
 
 void Camera::move(WindowManager &windowManager, GLFWwindow* window) {
 
+//    if (windowManager.isKeyDown(GLFW_KEY_UP)){
+//        FOV += 10 * windowManager.getLastFrameTime();
+//    }
+//    if (windowManager.isKeyDown(GLFW_KEY_DOWN)){
+//        FOV -= 10 * windowManager.getLastFrameTime();
+//    }
+
+
     if (windowManager.isKeyDown(GLFW_KEY_LEFT_SHIFT)){
         speed = static_cast<float>(speed2 * windowManager.getLastFrameTime());
     } else {

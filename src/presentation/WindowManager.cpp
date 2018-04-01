@@ -3,6 +3,8 @@
 
 void WindowManager::initWindow(char *title, int width, int height, EngineTester *engineTester, bool fullscreen) {
 
+	this->fullscreen = fullscreen;
+
     glfwInit();
 
     if (fullscreen) {
@@ -62,8 +64,8 @@ void WindowManager::onWindowResize (GLFWwindow* window, int newWidth, int newHei
 
     app->updateWindowSize(newWidth, newHeight);
 
-	app->cleanUpSwapChain();
-	app->createSwapChain ();
+//	app->cleanUpSwapChain();
+//	app->createSwapChain ();
 }
 
 bool WindowManager::isOpen () {

@@ -9,6 +9,7 @@
 
 #include "../utility/Maths.h"
 #include "../vulkanSetup/DeviceManager.h"
+#include "WindowManager.h"
 
 class SwapChainManager
 {
@@ -25,14 +26,14 @@ private:
 
 	SwapChainSupportDetails querySwapChainSupport ();
 	VkSurfaceFormatKHR chooseSwapChainSurfaceFormat (std::vector<VkSurfaceFormatKHR> surfaceFormats);
-	VkPresentModeKHR chooseSwapChainPresentMode (std::vector<VkPresentModeKHR> presentModes);
+	VkPresentModeKHR chooseSwapChainPresentMode(std::vector<VkPresentModeKHR> presentModes, bool fullscreen);
 	VkExtent2D chooseSwapChainExtent (VkSurfaceCapabilitiesKHR capabilities);
     VkImageView createImageView (VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 public:
 	explicit SwapChainManager (VulkanManager* vulkanManager);
 
-	void createSwapChainImagesAndViews ();
+	void createSwapChainImagesAndViews(WindowManager manager);
 	void cleanUp ();
 };
 

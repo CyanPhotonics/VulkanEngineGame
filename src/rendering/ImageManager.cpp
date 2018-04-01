@@ -1,6 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "ImageManager.h"
+#include "../scene/Scene.h"
 
 Texture ImageManager::loadIntoLocal(const char *file){
 
@@ -42,7 +43,9 @@ void ImageManager::loadIntoDevice(Texture &texture) {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    memoryUtility->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    memoryUtility->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(vulkanManager->device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -73,15 +76,28 @@ void ImageManager::loadIntoDevice(Texture &texture) {
 
 }
 
-Texture ImageManager::createAttachmentTexture() {
+int internalTextureIndex = 0;
+
+Texture ImageManager::createAttachmentTexture(VkSampleCountFlagBits samples, VkImageUsageFlags usage) {
+
+    return createAttachmentTexture(samples, usage, 1.0f);
+
+}
+
+Texture ImageManager::createAttachmentTexture(VkSampleCountFlagBits samples, VkImageUsageFlags usage, float resScale) {
 
     Texture texture{};
+    texture.file = ".internal." + internalTextureIndex++;
 
-    createImage(vulkanManager->swapChainExtent.width, vulkanManager->swapChainExtent.height,vulkanManager->swapChainImageFormat,
-                VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image,
-                texture.deviceMemory, vulkanManager->samples);
+    createImage(static_cast<uint32_t>(vulkanManager->swapChainExtent.width * resScale),
+                static_cast<uint32_t>(vulkanManager->swapChainExtent.height * resScale),
+                vulkanManager->swapChainImageFormat,
+                VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | (usage), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image,
+                texture.deviceMemory, samples);
 
     texture.imageView = createImageView(texture.image, vulkanManager->swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    texture.sampler = createTextureSampler();
 
     transitionImageLayout(texture.image, vulkanManager->swapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -106,9 +122,17 @@ void ImageManager::createDepthResources() {
 
 }
 
-void ImageManager::createMSAAResources() {
+void ImageManager::createMSAAResource() {
 
-    MSAATexture = createAttachmentTexture();
+    MSAATexture = createAttachmentTexture(vulkanManager->samples);
+
+}
+
+void ImageManager::createStorageImageResource(std::vector<Texture> &textures, float resScale) {
+
+    Texture texture = createAttachmentTexture(VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_USAGE_SAMPLED_BIT, resScale);
+
+    textures.push_back(texture);
 
 }
 
@@ -314,9 +338,9 @@ VkSampler ImageManager::createTextureSampler() {
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
     samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; //TODO maybe do something with
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.maxAnisotropy = 16;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -393,9 +417,14 @@ void ImageManager::cleanUpDepthImage() {
 
 }
 
-void ImageManager::cleanUpMSAAImage() {
+void ImageManager::cleanUpExtraImages(std::vector<Texture> &textures) {
 
     unloadFromDevice(MSAATexture);
+
+    for (Texture &texture : textures){
+        unloadFromDevice(texture);
+    }
+    textures.clear();
 
 }
 

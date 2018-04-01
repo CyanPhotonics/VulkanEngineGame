@@ -14,11 +14,11 @@
 
 #include "../rendering/CommandPoolManager.h"
 #include "../rendering/ImageManager.h"
-#include "../rendering/GraphicsPipelineManager.h"
 #include "../rendering/FrameBufferManager.h"
 #include "../rendering/RenderPassManager.h"
 #include "../rendering/BasicCommandBufferManager.h"
 
+#include "../graphicsPipeline/GraphicsPipelineManager.h"
 #include "../graphicsPipeline/BasicPipelines.h"
 
 #include "../resources/ModelManager.h"
@@ -37,7 +37,7 @@ private:
     #ifndef NDEBUG
         std::vector<const char*> validationLayers = {
                 "VK_LAYER_LUNARG_standard_validation",
-                //"VK_LAYER_LUNARG_assistant_layer" //TODO fix?
+                "VK_LAYER_LUNARG_assistant_layer"
         };
     #else
         std::vector<const char*> validationLayers = {};
@@ -78,7 +78,7 @@ private:
     void createScene();
     void postSwapChain();
     void preloop();
-    void updateUniforms(int start, int count, int pipelineIndex);
+    void updateUniforms(uint32_t start, uint32_t count, uint32_t pipelineIndex);
     void loopLogic();
     void loopRender();
     void postLoop();

@@ -1,7 +1,7 @@
 #ifndef BASIC_PIPELINES_H
 #define BASIC_PIPELINES_H
 
-#include "../rendering/GraphicsPipelineManager.h"
+#include "../graphicsPipeline/GraphicsPipelineManager.h"
 
 class BasicPipelines {
 private:

@@ -43,7 +43,7 @@ public:
     void move(WindowManager &windowManager, GLFWwindow* window);
     glm::mat4 getViewMatrix();
 
-    const float FOV = 110.0;
+    float FOV = 110.0;
     const float zNear = 0.01;
     //const float zFar = std::numeric_limits<float>::infinity();
     const float zFar = 1000.0;

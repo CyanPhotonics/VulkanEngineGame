@@ -13,6 +13,7 @@
 #include "../resources/Texture.h"
 
 #include "../utility/MemoryUtility.h"
+#include "../scene/Scene.h"
 
 class ImageManager {
 private:
@@ -45,7 +46,7 @@ public:
     Texture MSAATexture{};
 
     void createDepthResources();
-    Texture createAttachmentTexture();
+    Texture createAttachmentTexture(VkSampleCountFlagBits samples, VkImageUsageFlags usage = 0);
     Texture loadIntoLocal(const char *file);
     void loadIntoDevice(Texture &texture);
 
@@ -55,9 +56,12 @@ public:
     void cleanUpDepthImage();
     void cleanUpTextures();
 
-    void createMSAAResources();
+    void createMSAAResource();
+    void createStorageImageResource(std::vector<Texture> &textures, float resScale);
 
-    void cleanUpMSAAImage();
+    void cleanUpExtraImages(std::vector<Texture> &textures);
+
+    Texture createAttachmentTexture(VkSampleCountFlagBits samples, VkImageUsageFlags usage, float resScale);
 };
 
 

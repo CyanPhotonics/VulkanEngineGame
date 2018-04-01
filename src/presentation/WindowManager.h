@@ -49,6 +49,7 @@ public:
 	glm::ivec2 getWindowSize ();
 
 	bool isKeyDown (int keyCode);
+	bool fullscreen = false;
 
 	void cleanUp ();
 

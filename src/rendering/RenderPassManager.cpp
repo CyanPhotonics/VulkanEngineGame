@@ -44,6 +44,21 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     multiAttachmentRef.attachment = 2;
     multiAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    VkAttachmentDescription storageAttachmentDesc = {};
+    storageAttachmentDesc.format = vulkanManager->swapChainImageFormat;
+    storageAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+    storageAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    storageAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    storageAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    storageAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    storageAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference storageAttachmentRef = {};
+    storageAttachmentRef.attachment = 3;
+    storageAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
     std::array<VkSubpassDescription, 2> subpassArray{};
 
     subpassArray[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -51,24 +66,16 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
         subpassArray[0].pColorAttachments = &multiAttachmentRef;
     } else {
-        subpassArray[0].pColorAttachments = &swapChainAttachmentRef;
+        subpassArray[0].pColorAttachments = &storageAttachmentRef;
     }
     subpassArray[0].pDepthStencilAttachment = &depthAttachmentRef;
     if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
-        subpassArray[0].pResolveAttachments = &swapChainAttachmentRef;
+        subpassArray[0].pResolveAttachments = &storageAttachmentRef;
     }
-
+    //TODO fix?
     subpassArray[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassArray[1].colorAttachmentCount = 1;
-    if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
-        subpassArray[1].pColorAttachments = &multiAttachmentRef;
-    } else {
-        subpassArray[1].pColorAttachments = &swapChainAttachmentRef;
-    }
-    subpassArray[1].pDepthStencilAttachment = &depthAttachmentRef;
-    if (vulkanManager->samples != VK_SAMPLE_COUNT_1_BIT) {
-        subpassArray[1].pResolveAttachments = &swapChainAttachmentRef;
-    }
+    subpassArray[1].pColorAttachments = &swapChainAttachmentRef;
 
     std::array<VkSubpassDependency, 2> dependencyArray{};
 
@@ -87,7 +94,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     dependencyArray[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     dependencyArray[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-    std::array<VkAttachmentDescription, 3> attachmentsDescs = { swapChainAttachmentDesc, depthAttachmentDesc, multiAttachmentDesc };
+    std::array<VkAttachmentDescription, 4> attachmentsDescs = { swapChainAttachmentDesc, depthAttachmentDesc, multiAttachmentDesc, storageAttachmentDesc };
 
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

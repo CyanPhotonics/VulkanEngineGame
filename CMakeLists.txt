@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.5.2)
 project(VulkanEngine)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 
 set(LIB_DIR "C:/Users/Matthew/CLionProjects/Libraries")
-set(VULKAN_DIR "C:/VulkanSDK/1.1.70.0/")
+set(VULKAN_DIR "C:/VulkanSDK/1.1.70.1/")
 
 include_directories(
         ${LIB_DIR}/glm
@@ -31,30 +31,32 @@ add_executable(VulkanEngine
         src/scene/Scene.h
 
         src/vulkanSetup/VulkanManager.h
-        src/vulkanSetup/InstanceManager.cpp src/vulkanSetup/InstanceManager.h
-        src/vulkanSetup/ValidationLayerManager.cpp src/vulkanSetup/ValidationLayerManager.h
-        src/vulkanSetup/DeviceManager.cpp src/vulkanSetup/DeviceManager.h
+        src/vulkanSetup/InstanceManager.cpp         src/vulkanSetup/InstanceManager.h
+        src/vulkanSetup/ValidationLayerManager.cpp  src/vulkanSetup/ValidationLayerManager.h
+        src/vulkanSetup/DeviceManager.cpp           src/vulkanSetup/DeviceManager.h
 
-        src/presentation/SwapChainManager.cpp src/presentation/SwapChainManager.h
-        src/presentation/WindowManager.cpp src/presentation/WindowManager.h
+        src/presentation/SwapChainManager.cpp   src/presentation/SwapChainManager.h
+        src/presentation/WindowManager.cpp      src/presentation/WindowManager.h
 
-        src/rendering/RenderPassManager.cpp src/rendering/RenderPassManager.h
-        src/rendering/GraphicsPipelineManager.cpp src/rendering/GraphicsPipelineManager.h
-        src/rendering/FrameBufferManager.cpp src/rendering/FrameBufferManager.h
-        src/rendering/ImageManager.cpp src/rendering/ImageManager.h
-        src/rendering/CommandPoolManager.cpp src/rendering/CommandPoolManager.h
-        src/rendering/BasicCommandBufferManager.cpp src/rendering/BasicCommandBufferManager.h
+        src/rendering/RenderPassManager.cpp             src/rendering/RenderPassManager.h
+        src/rendering/FrameBufferManager.cpp            src/rendering/FrameBufferManager.h
+        src/rendering/ImageManager.cpp                  src/rendering/ImageManager.h
+        src/rendering/CommandPoolManager.cpp            src/rendering/CommandPoolManager.h
+        src/rendering/BasicCommandBufferManager.cpp     src/rendering/BasicCommandBufferManager.h
 
-        src/graphicsPipeline/BasicPipelines.cpp src/graphicsPipeline/BasicPipelines.h
+        src/graphicsPipeline/GraphicsPipelineManager.cpp    src/graphicsPipeline/GraphicsPipelineManager.h
+        src/graphicsPipeline/BasicPipelines.cpp             src/graphicsPipeline/BasicPipelines.h
+        src/graphicsPipeline/UniformVariable.cpp            src/graphicsPipeline/UniformVariable.h
+        src/graphicsPipeline/TextureSamplers.cpp            src/graphicsPipeline/TextureSamplers.h
 
         src/resources/Texture.h
         src/resources/Model.h
-        src/resources/ModelManager.cpp src/resources/ModelManager.h
+        src/resources/ModelManager.cpp  src/resources/ModelManager.h
         src/resources/OBJ_Loader.h
 
         src/utility/CollectionUtility.h
         src/utility/Maths.h
-        src/utility/MemoryUtility.h src/utility/MemoryUtility.cpp
+        src/utility/MemoryUtility.h     src/utility/MemoryUtility.cpp
         src/utility/DebugUtility.h)
 
 target_link_libraries(VulkanEngine

@@ -42,6 +42,8 @@ typedef struct{
 struct Scene {
     std::vector<Entity> entities = {};
     std::vector<PointLight> pointLights = {};
+
+    std::vector<Texture> storageTextures = {};
 };
 
 #endif //SCENE_H

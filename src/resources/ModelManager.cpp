@@ -158,14 +158,17 @@ void ModelManager::createVertexBuffer(Model &model) {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    memoryUtility->createBuffer (bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    memoryUtility->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory (vulkanManager->device, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy (data, model.vertices.data (), (size_t)bufferSize);
     vkUnmapMemory (vulkanManager->device, stagingBufferMemory);
 
-    memoryUtility->createBuffer (bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.vertexBuffer, model.vertexBufferMemory);
+    memoryUtility->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.vertexBuffer, model.vertexBufferMemory);
 
     memoryUtility->copyBuffer (stagingBuffer, model.vertexBuffer, bufferSize);
 
@@ -180,14 +183,17 @@ void ModelManager::createIndexBuffer(Model &model) {
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    memoryUtility->createBuffer (bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    memoryUtility->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory (vulkanManager->device, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy (data, model.indices.data (), (size_t)bufferSize);
     vkUnmapMemory (vulkanManager->device, stagingBufferMemory);
 
-    memoryUtility->createBuffer (bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.indexBuffer, model.indexBufferMemory);
+    memoryUtility->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.indexBuffer, model.indexBufferMemory);
 
     memoryUtility->copyBuffer (stagingBuffer, model.indexBuffer, bufferSize);
 

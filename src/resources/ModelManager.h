@@ -34,6 +34,7 @@ public:
     void unloadFromDevice(Model &model);
     void unloadFromLocal(Model &model);
     void cleanUpModels();
+
 };
 
 #endif //MODEL_MANAGER_H

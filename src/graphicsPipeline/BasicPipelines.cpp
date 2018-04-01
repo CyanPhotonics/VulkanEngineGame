@@ -2,7 +2,7 @@
 
 void BasicPipelines::createTexturedPipeline(PipelineTemplate &pipeline) {
 
-    pipeline.subpass = 0;
+    pipeline.subPassIndex = 0;
 
     // Shaders
 
@@ -12,6 +12,7 @@ void BasicPipelines::createTexturedPipeline(PipelineTemplate &pipeline) {
     // Uniforms
 
     // viewProjectionMatrix
+
     pipeline.uniforms.emplace_back(0, 1, sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT, PipelineTemplate::UniformTemplate::VARIABLE, PipelineTemplate::UniformTemplate::STATIC);
     // modelMatrix
     pipeline.uniforms.emplace_back(1, 1, sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT, PipelineTemplate::UniformTemplate::VARIABLE, PipelineTemplate::UniformTemplate::NON_STATIC);
@@ -34,29 +35,32 @@ void BasicPipelines::createTexturedPipeline(PipelineTemplate &pipeline) {
 
     pipeline.blendInfo.logicOpEnable = VK_FALSE;
 
+    // Depth
+
+    pipeline.depthTestEnabled = VK_TRUE;
+    pipeline.depthWriteEnabled = VK_TRUE;
+
+    // Multisample
+
+    pipeline.multiSample = VK_TRUE;
+
 
 }
 
 void BasicPipelines::createUntexturedUnlitPipeline(PipelineTemplate &pipeline) {
 
-    pipeline.subpass = 1;
+    pipeline.subPassIndex = 1;
 
     // Shaders
 
-    pipeline.vertexShaderFile = "blank/vert.spv";
-    pipeline.fragmentShaderFile = "blank/frag.spv";
+    pipeline.vertexShaderFile = "blur/vert.spv";
+    pipeline.fragmentShaderFile = "blur/frag.spv";
 
-    // Uniforms
+    //Uniforms
 
-    // viewProjectionMatrix
-    pipeline.uniforms.emplace_back(0, 1, sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT, PipelineTemplate::UniformTemplate::VARIABLE, PipelineTemplate::UniformTemplate::STATIC);
-    // modelMatrix
-    pipeline.uniforms.emplace_back(1, 1, sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT, PipelineTemplate::UniformTemplate::VARIABLE, PipelineTemplate::UniformTemplate::NON_STATIC);
+    pipeline.uniforms.emplace_back(0, 1, 0, VK_SHADER_STAGE_FRAGMENT_BIT, PipelineTemplate::UniformTemplate::TEXTURE_SAMPLER_SWAP_CHAIN_DEPENDENT, PipelineTemplate::UniformTemplate::NON_STATIC);
 
-    // Vertex Input
-
-    pipeline.vertexInputBindings = {Vertex::getBindingDescription()};
-    pipeline.vertexInputAttributes = Vertex::getAttributeDescriptions();
+    pipeline.uniforms.emplace_back(1, 1, sizeof(glm::ivec4), VK_SHADER_STAGE_FRAGMENT_BIT, PipelineTemplate::UniformTemplate::VARIABLE, PipelineTemplate::UniformTemplate::STATIC);
 
     // Blending
 
@@ -66,6 +70,15 @@ void BasicPipelines::createUntexturedUnlitPipeline(PipelineTemplate &pipeline) {
     pipeline.blendAttachments[0].blendEnable = VK_FALSE;
 
     pipeline.blendInfo.logicOpEnable = VK_FALSE;
+
+    // Depth
+
+    pipeline.depthTestEnabled = VK_FALSE;
+    pipeline.depthWriteEnabled = VK_FALSE;
+
+    // Multisample
+
+    pipeline.multiSample = VK_FALSE;
 
 }
 
