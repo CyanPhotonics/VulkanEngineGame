@@ -6,13 +6,22 @@
 class Maths{
 public:
     template <class T>
-    static T clamp(T value, T limit1, T limit2);
+    static void clamp(T& value, T limit1, T limit2);
+    template <class T>
+    static T clampReturn(T value, T limit1, T limit2);
     template <class T>
     static T clampBetween(T value, T limit1, T limit2, T diff);
 };
 
 template<class T>
-T Maths::clamp(T value, T limit1, T limit2) {
+void Maths::clamp(T& value, T limit1, T limit2) {
+    T minLimit = std::min(limit1, limit2);
+    T maxLimit = std::max(limit1, limit2);
+    value = std::min(std::max(value, minLimit),maxLimit);
+}
+
+template<class T>
+T Maths::clampReturn(T value, T limit1, T limit2) {
     T minLimit = std::min(limit1, limit2);
     T maxLimit = std::max(limit1, limit2);
     return std::min(std::max(value, minLimit),maxLimit);
