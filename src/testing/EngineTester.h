@@ -21,6 +21,9 @@
 #include "../graphicsPipeline/GraphicsPipelineManager.h"
 #include "../graphicsPipeline/BasicPipelines.h"
 
+#include "../postProcessing/PostProcessingStage.h"
+#include "../postProcessing/GaussianBlur.h"
+
 #include "../resources/ModelManager.h"
 
 #include "../scene/SceneManager.h"
@@ -36,8 +39,8 @@ private:
     std::vector<const char*> extensions = {};
     #ifndef NDEBUG
         std::vector<const char*> validationLayers = {
-                "VK_LAYER_LUNARG_standard_validation",
-                "VK_LAYER_LUNARG_assistant_layer"
+                "VK_LAYER_LUNARG_standard_validation"//,
+                //"VK_LAYER_LUNARG_assistant_layer" //TODO fix
         };
     #else
         std::vector<const char*> validationLayers = {};

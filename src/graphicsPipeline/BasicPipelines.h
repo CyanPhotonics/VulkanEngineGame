@@ -5,15 +5,28 @@
 
 class BasicPipelines {
 private:
-    void createTexturedPipeline(PipelineTemplate& pipeline);
-    void createUntexturedUnlitPipeline(PipelineTemplate& pipeline);
+    void createTexturedPipeline(PipelineTemplate &pipeline);
+
+    void createHorizontalGaussianBlurPipeline(PipelineTemplate &pipeline, int subpassIndex);
+
+    void createVerticalGaussianBlurPipeline(PipelineTemplate &pipeline, int subpassIndex);
+
 public:
     std::vector<PipelineTemplate> pipelines;
 
-    BasicPipelines(){
-        pipelines.resize(2);
+    void createPipelines(VulkanManager* vulkanManager){
+
+        pipelines.resize(1 + 2 * (size_t) vulkanManager->graphicsOptions.gaussianBlurLevels);
+
         createTexturedPipeline(pipelines[0]);
-        createUntexturedUnlitPipeline(pipelines[1]);
+
+        for (int i = 0; i < (int) vulkanManager->graphicsOptions.gaussianBlurLevels; ++i) {
+
+            createHorizontalGaussianBlurPipeline(pipelines[2*i + 1], 2*i + 1);
+            createVerticalGaussianBlurPipeline(pipelines[2*i + 2], 2*i + 2);
+
+        }
+
     }
 
     struct PointLightUniformObject {
@@ -22,6 +35,14 @@ public:
         glm::vec4 colours[MAX_POINT_LIGHTS];
         uint32_t count = 0;
     } pointLightUO;
+
+    struct BlurData {
+        uint32_t imageWidth;
+        uint32_t imageHeight;
+        float_t resScale;
+    private:
+        float_t temp = 0;
+    } blurData;
 
 };
 

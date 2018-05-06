@@ -1,7 +1,6 @@
 #ifndef VALIDATION_LAYER_MANAGER_H
 #define VALIDATION_LAYER_MANAGER_H
 
-#include <vulkan\vulkan.h>
 
 #include <vector>
 #include <iostream>

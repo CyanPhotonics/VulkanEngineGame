@@ -1,9 +1,9 @@
 #include "DeviceManager.h"
 
-DeviceManager::DeviceManager (VulkanManager *vulkanManager) {
-	this->vulkanManager = vulkanManager;
+DeviceManager::DeviceManager (VulkanManager *vulkanManager) : vulkanManager(vulkanManager) {
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-	deviceFeatures.sampleRateShading = (vulkanManager->samples == VK_SAMPLE_COUNT_1_BIT) ? VK_FALSE : VK_TRUE;
+	deviceFeatures.sampleRateShading = VK_TRUE;
+//	deviceFeatures.sampleRateShading = (vulkanManager->graphicsOptions.samples == VK_SAMPLE_COUNT_1_BIT) ? VK_FALSE : VK_TRUE;
 }
 
 void DeviceManager::pickPhysicalDevice () {

@@ -1,7 +1,6 @@
 #ifndef DEVICE_MANAGER_H
 #define DEVICE_MANAGER_H
 
-#include <vulkan\vulkan.h>
 
 #include <vector>
 #include <set>

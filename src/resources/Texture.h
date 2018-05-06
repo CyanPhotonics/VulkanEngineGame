@@ -1,7 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 //#include <stb_image.h>
 

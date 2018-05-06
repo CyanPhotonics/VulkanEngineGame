@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 class UniformVariable {
 private:

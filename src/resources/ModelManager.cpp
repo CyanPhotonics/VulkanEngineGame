@@ -2,6 +2,7 @@
 //
 //#include <tiny_obj_loader.h>
 
+#include <cstring> //TODO maybe not?
 #include "OBJ_Loader.h"
 
 #include "ModelManager.h"

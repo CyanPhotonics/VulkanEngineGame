@@ -4,9 +4,11 @@
 #include <vector>
 #include <stdint-gcc.h>
 
-#include <vulkan/vulkan.h>
-//#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.hpp>
+
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "../rendering/GraphicsOptions.h"
 
 class VulkanManager{
 public:
@@ -33,8 +35,6 @@ public:
     VkCommandPool graphicsCommandPool{};
     VkCommandPool transferCommandPool{};
 
-    VkSampleCountFlagBits samples{};
-
     VkFormat depthFormat{};
     VkImage depthImage{};
     VkDeviceMemory depthMemory{};
@@ -45,10 +45,11 @@ public:
     std::vector<VkSemaphore> imageAvailableSemaphores{};
     VkSemaphore renderFinishedSemaphore{};
 
+    GraphicsOptions graphicsOptions{};
+
     VulkanManager(){
         physicalDevice = VK_NULL_HANDLE;
         swapChainImageFormat = VK_FORMAT_UNDEFINED;
-        samples = VK_SAMPLE_COUNT_8_BIT;
     }
 
 

@@ -9,7 +9,7 @@ private:
     VulkanManager* vulkanManager{};
     CommandPoolManager* commandPoolManager{};
 public:
-    MemoryUtility(VulkanManager* vulkanManager, CommandPoolManager* commandPoolManager){ this->vulkanManager = vulkanManager;this->commandPoolManager = commandPoolManager; }
+    MemoryUtility(VulkanManager* vulkanManager, CommandPoolManager* commandPoolManager) : vulkanManager(vulkanManager), commandPoolManager(commandPoolManager) {}
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

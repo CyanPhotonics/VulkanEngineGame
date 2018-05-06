@@ -9,7 +9,7 @@ class CommandPoolManager {
 private:
     VulkanManager* vulkanManager;
 public:
-    explicit CommandPoolManager(VulkanManager* vulkanManager){ this->vulkanManager = vulkanManager; }
+    explicit CommandPoolManager(VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
 
     void createCommandPools();
 

@@ -1,7 +1,7 @@
 #ifndef DEBUG_UTILITY_H
 #define DEBUG_UTILITY_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <iostream>
 #include <sstream>
 

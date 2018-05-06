@@ -1,7 +1,7 @@
 #ifndef SWAP_CHAIN_MANAGER_H
 #define SWAP_CHAIN_MANAGER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include <vector>
 

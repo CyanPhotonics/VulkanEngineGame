@@ -11,7 +11,7 @@ class RenderPassManager {
 private:
     VulkanManager* vulkanManager;
 public:
-    explicit RenderPassManager(VulkanManager* vulkanManager){ this->vulkanManager = vulkanManager; }
+    explicit RenderPassManager(VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
     void createRenderPassesForSwapChain();
     void cleanUp();
 };

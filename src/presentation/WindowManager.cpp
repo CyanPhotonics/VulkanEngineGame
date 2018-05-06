@@ -24,6 +24,10 @@ void WindowManager::initWindow(char *title, int width, int height, EngineTester 
 
 	vulkanManager->window = glfwCreateWindow (this->width, this->height, title, nullptr, nullptr);
 
+    if (vulkanManager->window == nullptr){
+        return;
+    }
+
 	glfwSetKeyCallback (vulkanManager->window, keyCallback);
 
 	glfwSetWindowUserPointer (vulkanManager->window, engineTester);
@@ -102,6 +106,7 @@ void WindowManager::sync() {
 
 void WindowManager::showWindow () {
 	glfwShowWindow (vulkanManager->window);
+	glfwFocusWindow(vulkanManager->window);
 }
 
 std::vector<const char*> WindowManager::getRequiredExtensions () {

@@ -2,23 +2,39 @@ cmake_minimum_required(VERSION 3.5.2)
 project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 11)
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 
-set(LIB_DIR "C:/Users/Matthew/CLionProjects/Libraries")
-set(VULKAN_DIR "C:/VulkanSDK/1.1.70.1/")
+if ($ENV{WSL})
+    set(LIB_DIR "/mnt/c/Users/Matthew/CLionProjects/Libraries")
+    set(VULKAN_DIR "/home/Matthew/VulkanSDK/1.1.70.1/x86_64/")
+else ($ENV{WSL})
+    set(LIB_DIR "C:/Users/Matthew/CLionProjects/Libraries")
+    set(VULKAN_DIR "C:/VulkanSDK/1.1.73.0/")
+endif ($ENV{WSL})
 
 include_directories(
+        if ($ENV{WSL})
+            ${VULKAN_DIR}/include
+        else ($ENV{WSL})
+            ${VULKAN_DIR}/Include
+        endif ($ENV{WSL})
+
         ${LIB_DIR}/glm
         ${LIB_DIR}/glfw/include
-        ${VULKAN_DIR}/Include
         ${LIB_DIR}/stb
         ${LIB_DIR}/tinyobjloader
         # ${LIB_DIR}/OBJ_Loader
 )
 
 link_directories(
-        ${LIB_DIR}/glfw/lib-mingw-w64
-        ${VULKAN_DIR}/Lib
+        if ($ENV{WSL})
+            "/usr/local/lib"
+            "/usr/lib/x86_64-linux-gnu"
+            ${VULKAN_DIR}/lib
+        else ($ENV{WSL})
+            ${VULKAN_DIR}/Lib
+            ${LIB_DIR}/glfw/lib-mingw-w64
+        endif ($ENV{WSL})
 )
 
 add_executable(VulkanEngine
@@ -47,7 +63,10 @@ add_executable(VulkanEngine
         src/graphicsPipeline/GraphicsPipelineManager.cpp    src/graphicsPipeline/GraphicsPipelineManager.h
         src/graphicsPipeline/BasicPipelines.cpp             src/graphicsPipeline/BasicPipelines.h
         src/graphicsPipeline/UniformVariable.cpp            src/graphicsPipeline/UniformVariable.h
-        src/graphicsPipeline/TextureSamplers.cpp            src/graphicsPipeline/TextureSamplers.h
+        src/graphicsPipeline/TextureSamplers.h
+
+        src/postProcessing/PostProcessingStage.cpp      src/postProcessing/PostProcessingStage.h
+        src/postProcessing/GaussianBlur.cpp             src/postProcessing/GaussianBlur.h
 
         src/resources/Texture.h
         src/resources/Model.h
@@ -57,17 +76,26 @@ add_executable(VulkanEngine
         src/utility/CollectionUtility.h
         src/utility/Maths.h
         src/utility/MemoryUtility.h     src/utility/MemoryUtility.cpp
-        src/utility/DebugUtility.h)
+        src/utility/DebugUtility.h
+
+        src/rendering/GraphicsOptions.h)
 
 target_link_libraries(VulkanEngine
         ${GLFW3_LIBRARY}
         ${VULKAN-1_LIBRARY}
 )
 
-target_link_libraries(VulkanEngine
+if ($ENV{WSL})
+    target_link_libraries(VulkanEngine
+        glfw
+        "/home/Matthew/VulkanSDK/1.1.70.1/x86_64/lib/libvulkan.so"
+    )
+else ($ENV{WSL})
+    target_link_libraries(VulkanEngine
         glfw3
         vulkan-1
-)
+    )
+endif ($ENV{WSL})
 
 #add_custom_command(
 #        TARGET VulkanEngine PRE_BUILD

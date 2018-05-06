@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include "VulkanManager.h"
 
@@ -12,7 +12,7 @@ class InstanceManager {
 private:
     VulkanManager* vulkanManager;
 public:
-    explicit InstanceManager(VulkanManager* vulkanManager){ this->vulkanManager = vulkanManager; }
+    explicit InstanceManager(VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
 
     void createInstance(const char* applicationName, const std::vector<const char*> extensionNames, std::vector<const char*> validationLayerNames);
 

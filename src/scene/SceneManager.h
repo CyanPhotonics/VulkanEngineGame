@@ -5,12 +5,10 @@
 
 class SceneManager {
 public:
-    SceneManager(ImageManager* imageManager, ModelManager* modelManager){
-        this->imageManager = imageManager;
-        this->modelManager = modelManager;
-    }
     ImageManager* imageManager;
     ModelManager* modelManager;
+
+    SceneManager(ImageManager* imageManager, ModelManager* modelManager) : imageManager(imageManager), modelManager(modelManager) {}
 
     Entity_T addEntity(Scene &scene, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, const char *modelFile,
                        const char *textureFile);

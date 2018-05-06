@@ -2,6 +2,7 @@
 #define WINDOW_MANAGER_H
 
 #define GLFW_INCLUDE_VULKAN
+#define GLFW_NO_DISPLAY
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -34,7 +35,7 @@ private:
     double fpsLimit = 120;
 
 public:
-	explicit WindowManager (VulkanManager *vulkanManger){ this->vulkanManager = vulkanManger; }
+	explicit WindowManager (VulkanManager *vulkanManger) : vulkanManager(vulkanManger) {}
 
 	void initWindow(char *title, int width, int height, EngineTester *engineTester, bool fullscreen);
 	void createSurface ();

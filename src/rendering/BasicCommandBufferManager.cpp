@@ -1,8 +1,6 @@
 #include <thread>
 #include <iostream>
 #include "BasicCommandBufferManager.h"
-#include "../presentation/WindowManager.h"
-#include "../utility/DebugUtility.h"
 
 void test(std::string s) {
 
@@ -12,7 +10,9 @@ void test(std::string s) {
 
 void
 BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer> swapChainFrameBuffers,
-                                                GraphicsPipelineManager graphicsPipelineManager, Scene scene, WindowManager windowManager) {
+                                                GraphicsPipelineManager graphicsPipelineManager, Scene scene,
+                                                WindowManager windowManager,
+                                                std::vector<PostProcessingStage> &postProcessStages) {
 
     commandBuffers.resize(vulkanManager->swapChainImageViews.size());
 
@@ -30,7 +30,8 @@ BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer>
 
     for (int i = 0; i < commandBuffers.size(); ++i) {
         //threads[i] = std::thread(&BasicCommandBufferManager::write, this, i, swapChainFrameBuffers[i], pipeline, scene); //TODO fix? need multiple command pools, one per image, any real benefit for now?
-        write(i, swapChainFrameBuffers[i], graphicsPipelineManager, scene, windowManager);
+        write(i, swapChainFrameBuffers[i], graphicsPipelineManager, scene, windowManager,
+              postProcessStages);
     }
 
     for (int j = 0; j < 3; ++j) {
@@ -39,8 +40,9 @@ BasicCommandBufferManager::createCommandBuffers(const std::vector<VkFramebuffer>
 
 }
 
-void BasicCommandBufferManager::write(int i, VkFramebuffer_T *const &swapChainFrameBuffer, GraphicsPipelineManager graphicsPipelineManager, Scene scene,
-                                      WindowManager windowManager) {
+void BasicCommandBufferManager::write(int i, VkFramebuffer_T *const &swapChainFrameBuffer,
+                                      GraphicsPipelineManager graphicsPipelineManager, Scene scene,
+                                      WindowManager windowManager, std::vector<PostProcessingStage> &postProcessStages) {
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -58,11 +60,16 @@ void BasicCommandBufferManager::write(int i, VkFramebuffer_T *const &swapChainFr
 
     float value = 0.15;
 
-    std::array<VkClearValue, 4> clearValues = {};
+    std::array<VkClearValue, 9> clearValues = {};
     clearValues[0].color = {value,value,value,1.0f};
     clearValues[1].depthStencil = {1.0f, 0};
     clearValues[2].color = {value,value,value,1.0f};
     clearValues[3].color = {0,0,0,1.0f};
+    clearValues[4].color = {0,0,0,1.0f};
+    clearValues[5].color = {0,0,0,1.0f};
+    clearValues[6].color = {0,0,0,1.0f};
+    clearValues[7].color = {0,0,0,1.0f};
+    clearValues[8].color = {0,0,0,1.0f};
 
     renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassBeginInfo.pClearValues = clearValues.data();
@@ -74,15 +81,23 @@ void BasicCommandBufferManager::write(int i, VkFramebuffer_T *const &swapChainFr
     VkViewport viewport{};
     viewport.x = 0;
     viewport.y = 0;
-    viewport.width = windowManager.getWindowWidth() / 2.0f;
-    viewport.height = windowManager.getWindowHeight() / 2.0f;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
-    scissor.extent = VkExtent2D{static_cast<uint32_t>(vulkanManager->swapChainExtent.width / 2.0f),
-                                static_cast<uint32_t>(vulkanManager->swapChainExtent.height / 2.0f)};
     scissor.offset = {0,0};
+
+    if (postProcessStages.empty()) {
+        viewport.width = windowManager.getWindowWidth();
+        viewport.height = windowManager.getWindowHeight();
+        scissor.extent = VkExtent2D{static_cast<uint32_t>(vulkanManager->swapChainExtent.width),
+                                    static_cast<uint32_t>(vulkanManager->swapChainExtent.height)};
+    } else {
+        viewport.width = postProcessStages[0].getSourceSize()[0];
+        viewport.height = postProcessStages[0].getSourceSize()[1];
+        scissor.extent = VkExtent2D{postProcessStages[0].getSourceSize()[0],
+                                    postProcessStages[0].getSourceSize()[1]};
+    }
 
     vkCmdSetViewport(commandBuffers[i],0,1,&viewport);
     vkCmdSetScissor(commandBuffers[i],0,1,&scissor);
@@ -103,24 +118,41 @@ void BasicCommandBufferManager::write(int i, VkFramebuffer_T *const &swapChainFr
 
     }
 
-    //Subpass #2
+    for (int postProcessIndex = 0; postProcessIndex < postProcessStages.size(); ++postProcessIndex) {
 
-    viewport.width = windowManager.getWindowWidth();
-    viewport.height = windowManager.getWindowHeight();
-    scissor.extent = vulkanManager->swapChainExtent;
-    vkCmdSetViewport(commandBuffers[i],0,1,&viewport);
-    vkCmdSetScissor(commandBuffers[i],0,1,&scissor);
+        PostProcessingStage& basePostProcessStage = postProcessStages[postProcessIndex];
 
-    vkCmdNextSubpass(commandBuffers[i], VK_SUBPASS_CONTENTS_INLINE);
+        if (postProcessIndex == postProcessStages.size() - 1){
+            viewport.width = vulkanManager->swapChainExtent.width;
+            viewport.height = vulkanManager->swapChainExtent.height;
+            scissor.extent = VkExtent2D{
+                    vulkanManager->swapChainExtent.width,
+                    vulkanManager->swapChainExtent.height
+            };
+        } else {
+            viewport.width = postProcessStages[postProcessIndex+1].getSourceSize()[0];
+            viewport.height = postProcessStages[postProcessIndex+1].getSourceSize()[1];
+            scissor.extent = VkExtent2D{
+                    postProcessStages[postProcessIndex+1].getSourceSize()[0],
+                    postProcessStages[postProcessIndex+1].getSourceSize()[1]
+            };
+        }
 
-    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelines[1]);
+        vkCmdSetViewport(commandBuffers[i],0,1,&viewport);
+        vkCmdSetScissor(commandBuffers[i],0,1,&scissor);
 
-    vkCmdSetViewport(commandBuffers[i],0,1,&viewport);
+        vkCmdNextSubpass(commandBuffers[i], VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelineLayouts[1][0], 0, 1, &graphicsPipelineManager.descriptorSets[1][0],0,
-                            nullptr);
+        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelines[basePostProcessStage.getSubpassIndex()]);
 
-    vkCmdDraw(commandBuffers[i],6,1,0,0);
+        vkCmdSetViewport(commandBuffers[i],0,1,&viewport);
+
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineManager.pipelineLayouts[basePostProcessStage.getSubpassIndex()][0], 0, 1, &graphicsPipelineManager.descriptorSets[basePostProcessStage.getSubpassIndex()][0],0,
+                                nullptr);
+
+        vkCmdDraw(commandBuffers[i],6,1,0,0);
+
+    }
 
     vkCmdEndRenderPass(commandBuffers[i]);
 

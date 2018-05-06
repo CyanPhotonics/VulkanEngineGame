@@ -35,13 +35,10 @@ private:
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
     bool hasStencilComponent(VkFormat format);
     void copyBufferToImage(VkBuffer buffer, VkImage &image, uint32_t width, uint32_t height);
-    VkSampler createTextureSampler();
+    VkSampler createTextureSampler(VkBool32 unnormalizedCoords);
 public:
-    explicit ImageManager(VulkanManager* vulkanManager, CommandPoolManager* commandPoolManager, MemoryUtility* memoryUtility){
-        this->vulkanManager = vulkanManager;
-        this->commandPoolManager = commandPoolManager;
-        this->memoryUtility = memoryUtility;
-    }
+    explicit ImageManager(VulkanManager* vulkanManager, CommandPoolManager* commandPoolManager, MemoryUtility* memoryUtility)
+            : vulkanManager(vulkanManager), commandPoolManager(commandPoolManager), memoryUtility(memoryUtility) {}
 
     Texture MSAATexture{};
 

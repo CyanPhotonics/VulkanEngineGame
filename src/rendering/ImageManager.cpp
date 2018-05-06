@@ -68,7 +68,7 @@ void ImageManager::loadIntoDevice(Texture &texture) {
     vkFreeMemory(vulkanManager->device, stagingBufferMemory, nullptr);
 
     texture.imageView = createImageView(texture.image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
-    texture.sampler = createTextureSampler();
+    texture.sampler = createTextureSampler(VK_FALSE);
 
     texture.isLoadedIntoDevice = true;
 
@@ -97,7 +97,7 @@ Texture ImageManager::createAttachmentTexture(VkSampleCountFlagBits samples, VkI
 
     texture.imageView = createImageView(texture.image, vulkanManager->swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
-    texture.sampler = createTextureSampler();
+    texture.sampler = createTextureSampler(VK_TRUE); //TODO maybe make param
 
     transitionImageLayout(texture.image, vulkanManager->swapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -114,7 +114,7 @@ void ImageManager::createDepthResources() {
 
     createImage(vulkanManager->swapChainExtent.width, vulkanManager->swapChainExtent.height,
                 vulkanManager->depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vulkanManager->depthImage, vulkanManager->depthMemory, vulkanManager->samples);
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vulkanManager->depthImage, vulkanManager->depthMemory, vulkanManager->graphicsOptions.samples);
 
     vulkanManager->depthImageView = createImageView(vulkanManager->depthImage, vulkanManager->depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
@@ -124,7 +124,7 @@ void ImageManager::createDepthResources() {
 
 void ImageManager::createMSAAResource() {
 
-    MSAATexture = createAttachmentTexture(vulkanManager->samples);
+    MSAATexture = createAttachmentTexture(vulkanManager->graphicsOptions.samples);
 
 }
 
@@ -332,7 +332,9 @@ void ImageManager::copyBufferToImage(VkBuffer buffer, VkImage &image, uint32_t w
 
 }
 
-VkSampler ImageManager::createTextureSampler() {
+VkSampler ImageManager::createTextureSampler(VkBool32 unnormalizedCoords) {
+
+    //TODO maybe only do once
 
     VkSamplerCreateInfo samplerInfo = {};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -341,10 +343,10 @@ VkSampler ImageManager::createTextureSampler() {
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; //TODO maybe do something with
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.anisotropyEnable = unnormalizedCoords == VK_TRUE ? VK_FALSE : VK_TRUE;
     samplerInfo.maxAnisotropy = 16;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.unnormalizedCoordinates = unnormalizedCoords;
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;

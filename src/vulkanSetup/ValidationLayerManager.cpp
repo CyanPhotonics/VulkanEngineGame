@@ -1,8 +1,6 @@
 #include "ValidationLayerManager.h"
 
-ValidationLayerManager::ValidationLayerManager (VulkanManager *vulkanManager) {
-	this->vulkanManager = vulkanManager;
-}
+ValidationLayerManager::ValidationLayerManager (VulkanManager *vulkanManager) : vulkanManager(vulkanManager) {}
 
 void ValidationLayerManager::validateLayerSupport(std::vector<const char *> validationLayers, std::vector<const char *> &extensions) {
 

@@ -1,4 +1,5 @@
 #include "InstanceManager.h"
+#include "../utility/DebugUtility.h"
 
 void InstanceManager::createInstance(const char* applicationName, const std::vector<const char*> extensionNames, std::vector<const char*> validationLayerNames) {
 
@@ -18,11 +19,7 @@ void InstanceManager::createInstance(const char* applicationName, const std::vec
     createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerNames.size());
     createInfo.ppEnabledLayerNames = validationLayerNames.data();
 
-    VkResult result = vkCreateInstance(&createInfo, nullptr, &vulkanManager->instance);
-
-    if (result != VK_SUCCESS){
-        throw std::runtime_error("Failed to create vulkan instance!\n");
-    }
+    DebugUtility::VkSuccess(vkCreateInstance(&createInfo, nullptr, &vulkanManager->instance), "Failed to create vulkan instance!");
 
 }
 

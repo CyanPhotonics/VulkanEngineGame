@@ -15,7 +15,7 @@ private:
     std::vector<VkFramebuffer> frameBuffers{};
 
 public:
-    explicit FrameBufferManager(VulkanManager *vulkanManager){ this->vulkanManager = vulkanManager; }
+    explicit FrameBufferManager(VulkanManager *vulkanManager) : vulkanManager(vulkanManager) {}
 
     void createFrameBuffersWithSwapChain(std::vector<VkImageView> extraAttachments);
 

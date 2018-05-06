@@ -10,18 +10,22 @@
 #include "../scene/SceneManager.h"
 #include "../graphicsPipeline/GraphicsPipelineManager.h"
 #include "../presentation/WindowManager.h"
+#include "../postProcessing/PostProcessingStage.h"
+#include "../utility/DebugUtility.h"
 
 class BasicCommandBufferManager {
 private:
     VulkanManager* vulkanManager;
     void
-    write(int i, VkFramebuffer_T *const &swapChainFrameBuffer, GraphicsPipelineManager graphicsPipelineManager, Scene scene,
-              WindowManager windowManager);
+    write(int i, VkFramebuffer_T *const &swapChainFrameBuffer, GraphicsPipelineManager graphicsPipelineManager,
+          Scene scene,
+          WindowManager windowManager, std::vector<PostProcessingStage> &postProcessStages);
 
 public:
-    explicit BasicCommandBufferManager(VulkanManager* vulkanManager) { this->vulkanManager = vulkanManager; }
+    explicit BasicCommandBufferManager(VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
     void createCommandBuffers(const std::vector<VkFramebuffer> swapChainFrameBuffers,
-                                  GraphicsPipelineManager graphicsPipelineManager, Scene scene, WindowManager windowManager);
+                              GraphicsPipelineManager graphicsPipelineManager, Scene scene, WindowManager windowManager,
+                              std::vector<PostProcessingStage> &postProcessStages);
     std::vector<VkCommandBuffer> commandBuffers = {};
     void cleanUp();
 

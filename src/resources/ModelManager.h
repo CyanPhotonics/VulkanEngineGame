@@ -24,10 +24,8 @@ private:
     void createVertexBuffer(Model &model);
     void createIndexBuffer(Model &model);
 public:
-    ModelManager(VulkanManager *vulkanManager, MemoryUtility *memoryUtility){
-        this->vulkanManager = vulkanManager;
-        this->memoryUtility = memoryUtility;
-    }
+    ModelManager(VulkanManager *vulkanManager, MemoryUtility *memoryUtility)
+            : vulkanManager(vulkanManager), memoryUtility(memoryUtility){}
 
     Model loadIntoLocal(const char *file);
     void loadIntoDevice(Model &model);

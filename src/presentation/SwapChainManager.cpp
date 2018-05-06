@@ -1,9 +1,7 @@
 #include "SwapChainManager.h"
 #include "WindowManager.h"
 
-SwapChainManager::SwapChainManager (VulkanManager* vulkanManager) {
-	this->vulkanManager = vulkanManager;
-}
+SwapChainManager::SwapChainManager (VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
 
 void SwapChainManager::createSwapChainImagesAndViews(WindowManager manager) {
 
