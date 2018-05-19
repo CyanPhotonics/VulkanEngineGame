@@ -38,6 +38,46 @@ void WindowManager::initWindow(char *title, int width, int height, EngineTester 
 
 }
 
+void WindowManager::setFullscreen(bool fullscreen){
+
+    if (this->fullscreen == fullscreen) return;
+
+    this->fullscreen = fullscreen;
+
+    static uint32_t oldWidth = 1280;
+    static uint32_t oldHeight = 720;
+
+    static int oldX = -1;
+    static int oldY = -1;
+
+    if (fullscreen){
+
+        oldWidth = static_cast<uint32_t>(width);
+        oldHeight = static_cast<uint32_t>(height);
+
+        glfwGetWindowPos(vulkanManager->window, &oldX, &oldY);
+
+        const GLFWvidmode* glfwVidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+        glfwSetWindowMonitor(vulkanManager->window, glfwGetPrimaryMonitor(), 0,0,glfwVidMode->width, glfwVidMode->height, glfwVidMode->refreshRate);
+
+    } else {
+
+        bool centre = false;
+
+        if(oldX == -1 || oldY == -1){
+            oldX = 0, oldY = 0;
+            centre = true;
+        }
+
+        glfwSetWindowMonitor(vulkanManager->window, nullptr, oldX, oldY, oldWidth, oldHeight, GLFW_DONT_CARE);
+
+        if (centre) centreWindow();
+
+    }
+
+}
+
 void WindowManager::createSurface () {
 	if (glfwCreateWindowSurface (vulkanManager->instance, vulkanManager->window, nullptr, &vulkanManager->surface) != VK_SUCCESS) {
 		throw std::runtime_error ("Failed to create surface");
@@ -58,6 +98,12 @@ void WindowManager::centreWindow () {
 void WindowManager::keyCallback (GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose (window, GLFW_TRUE);
+
+	if (key == GLFW_KEY_F11 && action == GLFW_RELEASE){
+        auto* app = reinterpret_cast<EngineTester*>(glfwGetWindowUserPointer (window));
+
+        app->setFullscreen();
+	}
 
 }
 
@@ -153,5 +199,18 @@ void WindowManager::cleanUp () {
 	glfwDestroyWindow (vulkanManager->window);
 	vulkanManager->window = nullptr;
 	glfwTerminate ();
+
+}
+
+bool WindowManager::isFullscreen() {
+    return fullscreen;
+}
+
+bool WindowManager::shouldNotRender() {
+
+    int width, height;
+    glfwGetFramebufferSize(vulkanManager->window, &width, &height);
+
+    return (isFullscreen() &&  !glfwGetWindowAttrib(vulkanManager->window, GLFW_FOCUSED)) || glfwGetWindowAttrib(vulkanManager->window, GLFW_ICONIFIED) || width <= 0 || height <= 0                    ;
 
 }

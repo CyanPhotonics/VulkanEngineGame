@@ -71,9 +71,9 @@ std::vector<GaussianBlur *> gaussianBlurs{};
 
 std::vector<PostProcessingStage> postProcessStages{};
 
-void EngineTester::createSwapChain() {
+void EngineTester::createSwapChain(VkSwapchainKHR oldSwapChain) {
 
-    swapChainManager.createSwapChainImagesAndViews(windowManager);
+    swapChainManager.createSwapChainImagesAndViews(windowManager, oldSwapChain);
 
     if (vulkanManager.swapChainExtent.width == 0 || vulkanManager.swapChainExtent.height == 0) {
         cleanUpSwapChain();
@@ -114,12 +114,7 @@ void EngineTester::createSwapChain() {
         postProcessStages.push_back(gaussianBlur->getVerticalStage());
     }
 
-    if ((int) vulkanManager.graphicsOptions.gaussianBlurLevels > 0){
-        graphicsPipelineManager.textureSamplers[1][0].accessImageInfo(0).imageLayout = VK_IMAGE_LAYOUT_UNDEFINED; //TODO fix?       //VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        graphicsPipelineManager.textureSamplers[2][0].accessImageInfo(0).imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//TODO fix?       //VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-    }
-
-    for (int i = 1; i < (int) vulkanManager.graphicsOptions.gaussianBlurLevels; ++i) {
+    for (int i = 0; i < (int) vulkanManager.graphicsOptions.gaussianBlurLevels; ++i) { //TODO Research input attachments for potential solution
         graphicsPipelineManager.textureSamplers[1+2*i][0].accessImageInfo(0).imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; //TODO fix?       //VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         graphicsPipelineManager.textureSamplers[2+2*i][0].accessImageInfo(0).imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//TODO fix?       //VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     }
@@ -302,6 +297,18 @@ void EngineTester::updateUniforms(uint32_t start, uint32_t count, uint32_t pipel
 
 void EngineTester::loopRender() {
 
+    static VkResult result = VK_SUCCESS;
+
+    if (windowManager.shouldNotRender()) return;;
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR){
+        result = VK_SUCCESS;
+        vulkanManager.oldSwapChain = vulkanManager.swapChain;
+        cleanUpSwapChain();
+        createSwapChain(vulkanManager.oldSwapChain);
+        swapChainManager.cleanUp(vulkanManager.oldSwapChain);
+    }
+
     if (imageIndex == std::numeric_limits<uint32_t>::max()) {
         imageIndex = static_cast<uint32_t>(vulkanManager.imageAvailableSemaphores.size() - 1);
     }
@@ -309,18 +316,21 @@ void EngineTester::loopRender() {
     //Draw frame
     vkQueueWaitIdle(vulkanManager.presentQueue);
 
-    VkResult result = vkAcquireNextImageKHR(vulkanManager.device, vulkanManager.swapChain,
-                                            std::numeric_limits<uint64_t>::max(),
-                                            vulkanManager.imageAvailableSemaphores[(imageIndex + 1) %
-                                                                                   vulkanManager.imageAvailableSemaphores.size()],
-                                            VK_NULL_HANDLE, &imageIndex);
+    result = vkAcquireNextImageKHR(vulkanManager.device, vulkanManager.swapChain,
+                                   std::numeric_limits<uint64_t>::max(),
+                                   vulkanManager.imageAvailableSemaphores[(imageIndex + 1) %
+                                                                                       vulkanManager.imageAvailableSemaphores.size()],
+                                   VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        cleanUpSwapChain();
-        createSwapChain();
-        printf("Out of data\n");
-        printf("Out of data\n");
-        return;
+        if (!windowManager.shouldNotRender()) {
+            vulkanManager.oldSwapChain = vulkanManager.swapChain;
+            cleanUpSwapChain();
+            createSwapChain(vulkanManager.oldSwapChain);
+            swapChainManager.cleanUp(vulkanManager.oldSwapChain);
+            printf("Out of data\n");
+            return;
+        }
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("Failed to acquire swap chain image!\n");
     }
@@ -357,9 +367,13 @@ void EngineTester::loopRender() {
     result = vkQueuePresentKHR(vulkanManager.presentQueue, &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        cleanUpSwapChain();
-        createSwapChain();
-        printf("Out of date/suboptimal\n");
+        if (!windowManager.shouldNotRender()) {
+            vulkanManager.oldSwapChain = vulkanManager.swapChain;
+            cleanUpSwapChain();
+            createSwapChain(vulkanManager.oldSwapChain);
+            swapChainManager.cleanUp(vulkanManager.oldSwapChain);
+            printf("Out of date/suboptimal\n");
+        }
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("Failed to present swap chain image!\n");
     }
@@ -384,7 +398,7 @@ void EngineTester::cleanUpSwapChain() {
     imageManager.cleanUpExtraImages(scene.storageTextures);
     frameBufferManager.cleanUp();
     renderPassManager.cleanUp();
-    swapChainManager.cleanUp();
+    swapChainManager.cleanUpImageViews();
 
     for (VkSemaphore &semaphore : vulkanManager.imageAvailableSemaphores) {
         vkDestroySemaphore(vulkanManager.device, semaphore, nullptr);
@@ -394,6 +408,8 @@ void EngineTester::cleanUpSwapChain() {
 }
 
 void EngineTester::cleanup() {
+
+    swapChainManager.cleanUp();
 
     sceneManager.cleanUp(scene);
 
@@ -424,7 +440,7 @@ void EngineTester::run() {
     printf("Vulkan environment setup complete\n");
     createScene();
     printf("Scene created\n");
-    createSwapChain();
+    createSwapChain(nullptr);
     printf("Swap chain complete\n");
     postSwapChain();
     preloop();
@@ -453,6 +469,13 @@ void EngineTester::run() {
 int main() {
 
     EngineTester engineTester = EngineTester();
-    engineTester.run();
+
+    try {
+        engineTester.run();
+    } catch (std::exception& e){
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return -1;
+    }
+
     return 0;
 }

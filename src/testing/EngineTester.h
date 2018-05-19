@@ -39,8 +39,8 @@ private:
     std::vector<const char*> extensions = {};
     #ifndef NDEBUG
         std::vector<const char*> validationLayers = {
-                "VK_LAYER_LUNARG_standard_validation"//,
-                //"VK_LAYER_LUNARG_assistant_layer" //TODO fix
+                "VK_LAYER_LUNARG_standard_validation",
+                "VK_LAYER_LUNARG_assistant_layer"
         };
     #else
         std::vector<const char*> validationLayers = {};
@@ -90,10 +90,15 @@ public:
     void run();
 
     void cleanUpSwapChain();
-    void createSwapChain();
+    void createSwapChain(VkSwapchainKHR oldSwapChain);
 
     void updateWindowSize(int width, int height){ windowManager.updateWindowSize(width, height); }
 
+    void setFullscreen(){
+
+        windowManager.setFullscreen(!windowManager.isFullscreen());
+
+    }
 };
 
 #endif //ENGINE_TESTER_H

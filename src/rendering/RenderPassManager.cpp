@@ -54,7 +54,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachmentRef = {};
@@ -68,7 +68,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachment2Desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachment2Desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachment2Desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachment2Desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachment2Desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachment2Desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachment2Ref = {};
@@ -82,7 +82,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachment3Desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachment3Desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachment3Desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachment3Desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachment3Desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachment3Desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachment3Ref = {};
@@ -96,7 +96,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachment4Desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachment4Desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachment4Desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachment4Desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachment4Desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachment4Desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachment4Ref = {};
@@ -110,7 +110,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachment5Desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachment5Desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachment5Desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachment5Desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachment5Desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachment5Desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachment5Ref = {};
@@ -124,7 +124,7 @@ void RenderPassManager::createRenderPassesForSwapChain() {
     storageAttachment6Desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     storageAttachment6Desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     storageAttachment6Desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    storageAttachment6Desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    storageAttachment6Desc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     storageAttachment6Desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference storageAttachment6Ref = {};
@@ -239,16 +239,16 @@ void RenderPassManager::createRenderPassesForSwapChain() {
         dependencyArray[1 + 2*i].dstSubpass = (uint32_t) 2*i+1;
         dependencyArray[1 + 2*i].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependencyArray[1 + 2*i].srcAccessMask = 0;
-        dependencyArray[1 + 2*i].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependencyArray[1 + 2*i].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependencyArray[1 + 2*i].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependencyArray[1 + 2*i].dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
 
         //TODO check dependency is done right
         dependencyArray[2 + 2*i].srcSubpass = (uint32_t) 2*i+1;
         dependencyArray[2 + 2*i].dstSubpass = (uint32_t) 2*i+2;
         dependencyArray[2 + 2*i].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependencyArray[2 + 2*i].srcAccessMask = 0;
-        dependencyArray[2 + 2*i].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependencyArray[2 + 2*i].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependencyArray[2 + 2*i].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependencyArray[2 + 2*i].dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
 
     }
 

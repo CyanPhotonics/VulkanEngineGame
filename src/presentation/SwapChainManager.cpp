@@ -3,7 +3,7 @@
 
 SwapChainManager::SwapChainManager (VulkanManager* vulkanManager) : vulkanManager(vulkanManager) {}
 
-void SwapChainManager::createSwapChainImagesAndViews(WindowManager manager) {
+void SwapChainManager::createSwapChainImagesAndViews(WindowManager manager, VkSwapchainKHR oldSwapChain) {
 
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport ();
 
@@ -46,9 +46,9 @@ void SwapChainManager::createSwapChainImagesAndViews(WindowManager manager) {
 	createInfo.presentMode = presentMode;
 	createInfo.clipped = VK_TRUE;
 
-	createInfo.oldSwapchain = VK_NULL_HANDLE;
+	createInfo.oldSwapchain = oldSwapChain;
 
-	if (vkCreateSwapchainKHR (vulkanManager->device, &createInfo, nullptr, &vulkanManager->swapChain) != VK_SUCCESS) {
+	if (    vkCreateSwapchainKHR (vulkanManager->device, &createInfo, nullptr, &vulkanManager->swapChain) != VK_SUCCESS) {
 		throw std::runtime_error ("Failed to create swapchain!\n");
 	}
 
@@ -113,6 +113,7 @@ VkSurfaceFormatKHR SwapChainManager::chooseSwapChainSurfaceFormat (std::vector<V
 VkPresentModeKHR SwapChainManager::chooseSwapChainPresentMode(std::vector<VkPresentModeKHR> presentModes, bool fullscreen) {
 
     if (fullscreen){
+        //TODO try to find fix
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
@@ -173,15 +174,26 @@ VkImageView SwapChainManager::createImageView (VkDevice device, VkImage image, V
 
 }
 
-void SwapChainManager::cleanUp () {
+void SwapChainManager::cleanUpImageViews(){
 
-	for (int i = 0; i < swapChainImages.size (); i++) {
-		vkDestroyImageView (vulkanManager->device, vulkanManager->swapChainImageViews[i], nullptr);
-		vulkanManager->swapChainImageViews[i] = VK_NULL_HANDLE;
-	}
+    for (int i = 0; i < swapChainImages.size (); i++) {
+        vkDestroyImageView (vulkanManager->device, vulkanManager->swapChainImageViews[i], nullptr);
+        vulkanManager->swapChainImageViews[i] = VK_NULL_HANDLE;
+    }
+
+}
+
+void SwapChainManager::cleanUp () {
 
 	vkDestroySwapchainKHR (vulkanManager->device, vulkanManager->swapChain, nullptr);
 	vulkanManager->swapChain = VK_NULL_HANDLE;
+
+}
+
+void SwapChainManager::cleanUp(VkSwapchainKHR &swapChain) {
+
+    vkDestroySwapchainKHR (vulkanManager->device, swapChain, nullptr);
+    swapChain = VK_NULL_HANDLE;
 
 }
 

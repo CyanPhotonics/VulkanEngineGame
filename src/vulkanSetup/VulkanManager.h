@@ -25,6 +25,7 @@ public:
     VkQueue transferQueue{};
 
     VkSwapchainKHR swapChain{};
+    VkSwapchainKHR oldSwapChain{};
     std::vector<VkImageView> swapChainImageViews;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent{};
@@ -48,6 +49,7 @@ public:
     GraphicsOptions graphicsOptions{};
 
     VulkanManager(){
+        oldSwapChain = VK_NULL_HANDLE;
         physicalDevice = VK_NULL_HANDLE;
         swapChainImageFormat = VK_FORMAT_UNDEFINED;
     }

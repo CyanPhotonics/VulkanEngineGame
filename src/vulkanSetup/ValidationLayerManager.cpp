@@ -2,10 +2,11 @@
 
 ValidationLayerManager::ValidationLayerManager (VulkanManager *vulkanManager) : vulkanManager(vulkanManager) {}
 
-void ValidationLayerManager::validateLayerSupport(std::vector<const char *> validationLayers, std::vector<const char *> &extensions) {
+void ValidationLayerManager::validateLayerSupport(std::vector<const char *> &validationLayers, std::vector<const char *> &extensions) {
 
 	if (!validationLayersSupported (validationLayers)) {
 		validationLayers.clear ();
+		std::cout << "ERROR: Validations layer(s) not supported, not using" << std::endl;
 	} else {
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     }
@@ -50,7 +51,7 @@ void ValidationLayerManager::setup (const std::vector<const char*> validationLay
 
 	VkDebugReportCallbackCreateInfoEXT createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 	createInfo.pfnCallback = debugCallback;
 
 	if (CreateDebugReportCallbackEXT (vulkanManager->instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {

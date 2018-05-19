@@ -20,7 +20,7 @@ private:
 public:
 	explicit ValidationLayerManager (VulkanManager *vulkanManager);
 
-	void validateLayerSupport(std::vector<const char *> validationLayers, std::vector<const char *> &vector);
+	void validateLayerSupport(std::vector<const char *> &validationLayers, std::vector<const char *> &vector);
 	void setup (std::vector<const char*> validationLayers);
 	void cleanUp ();
 

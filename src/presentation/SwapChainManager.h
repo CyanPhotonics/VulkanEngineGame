@@ -33,8 +33,12 @@ private:
 public:
 	explicit SwapChainManager (VulkanManager* vulkanManager);
 
-	void createSwapChainImagesAndViews(WindowManager manager);
+	void createSwapChainImagesAndViews(WindowManager manager, VkSwapchainKHR oldSwapChain);
 	void cleanUp ();
+
+	void cleanUp(VkSwapchainKHR &swapChain);
+
+	void cleanUpImageViews();
 };
 
 #endif // !SWAP_CHAIN_MANAGER_H

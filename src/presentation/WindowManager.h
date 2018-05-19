@@ -58,6 +58,12 @@ public:
         this->width = width;
         this->height = height;
     }
+
+	void setFullscreen(bool fullscreen);
+
+    bool isFullscreen();
+
+    bool shouldNotRender();
 };
 
 #endif // !WINDOW_MANAGER_H
